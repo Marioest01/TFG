@@ -6,6 +6,7 @@ library(knitr)
 library(ggplot2)
 library(visreg)
 
+#HIPÒTESIS 1 PART 2
 #CARREGUEM DADES
 dta1<-read_sav("C:/Users/mario/Downloads/Microdades_anonimitzades_1071.sav")
 dta2<-read_sav("C:/Users/mario/Downloads/dades2.sav")
@@ -149,15 +150,7 @@ kable(t_14, digits = 2, caption = "T14")
 kable(t_23, digits = 2, caption = "T23")
 
 
-
-
-
-
-
-
-
-
-#ENQUESTA NOVA
+#HIPÒTESIS 2
 dta1<-read_sav("C:/Users/mario/Downloads/Microdades_anonimitzades_1071.sav")
 
 dta1 <- dta1 %>%
@@ -279,14 +272,15 @@ re10
 
 visreg(re10, "EDAT", 
        by = "DESAFECCIO",
-       band = TRUE,    # viualitzem bandes
-       gg = TRUE,      # usem ggplot2
-       overlay=TRUE,   # un mateix grafic
+       band = TRUE,    
+       gg = TRUE,      
+       overlay=TRUE,   
        scale="response") +
   labs(y = "Prob. de vot a partits nous", 
        x = "Edat dels votants")
 
 
+#HIPÒTESIS 3
 
 dta1<-read_sav("C:/Users/mario/Downloads/Microdades_anonimitzades_1071.sav")
 dta1 <- dta1 %>%
@@ -311,7 +305,7 @@ dta21 <- dta21 %>%
                                                     ifelse(EFICACIA_EXT_1 == 1 & EFICACIA_EXT_2 == 1 & EFICACIA_INT_1 == 2 & EFICACIA_INT_2 == 1, 1, 
                                                            0))))))
 
-#AJUSTAR VARIABLES
+#AJUSTAR VARIABLES PER DTA1 & DTA22
 dta1$ESTUDIS <- NA
 dta1$ESTUDIS[dta1$ESTUDIS_1_15  %in% c(1,2,3,4)] <- "Fins Educació secundària"
 dta1$ESTUDIS[dta1$ESTUDIS_1_15 %in% c(5,6,7)] <- "Batxillerat i Cicles formatius, mitjans i superiors"
@@ -440,7 +434,6 @@ dta21 <- dta21 %>%
 dta21 <- na.omit(dta21)
 dta21 <- subset(dta21, !(CONFI_POL_CAT %in% c(99, 98)))
 dta21 <- subset(dta21, !(VAL_GOV_CAT %in% c(99, 98)))
-library(dplyr)
 
 dta22 <- subset(dta22, !(CONFI_POL_CAT %in% c(99, 98)))
 ggplot(data.frame(dta22$PROTESTA), aes(x=dta22$PROTESTA)) +
@@ -468,3 +461,85 @@ tab_model(
 library(coefplot)
 coefplot(reg1)
 coefplot(reg2)
+
+
+#HIPÒTESIS 1 PART 1
+
+library(tidyverse)
+library(dplyr)
+library(haven)
+dta2<-read_sav("C:/Users/mario/Downloads/Microdades anonimitzades fusio presencial.sav")
+
+#EFICACIA EXTERNA 1
+desafeccio_ext_1 <- dta2 %>% select(EFICACIA_EXT_1, ANY)
+desafeccio_ext_1 <- desafeccio_ext_1 %>%
+  filter(!is.na(EFICACIA_EXT_1))
+desafeccio_ext_1 <- subset(desafeccio_ext_1, !(EFICACIA_EXT_1 %in% c(99, 98)))
+
+df_percentage_1 <- desafeccio_ext_1 %>%
+  group_by(ANY, EFICACIA_EXT_1) %>%
+  summarise(count = n()) %>%
+  mutate('Eficacia externa 1' = count / sum(count) * 100) %>%  
+  filter(EFICACIA_EXT_1 == 2)
+
+#EFICACIA EXTERNA 2
+desafeccio_ext_2 <- dta2 %>% select(EFICACIA_EXT_2, ANY)
+desafeccio_ext_2 <- desafeccio_ext_2 %>%
+  filter(!is.na(EFICACIA_EXT_2))
+desafeccio_ext_2 <- subset(desafeccio_ext_2, !(EFICACIA_EXT_2 %in% c(99, 98)))
+
+df_percentage_2 <- desafeccio_ext_2 %>%
+  group_by(ANY, EFICACIA_EXT_2) %>%
+  summarise(count = n()) %>%
+  mutate('Eficacia externa 2' = count / sum(count) * 100) %>%  
+  filter(EFICACIA_EXT_2 == 1)
+
+#EFICACIA INTERNA 1
+desafeccio_int_1 <- dta2 %>% select(EFICACIA_INT_1, ANY)
+desafeccio_int_1 <- desafeccio_int_1 %>%
+  filter(!is.na(EFICACIA_INT_1))
+desafeccio_int_1 <- subset(desafeccio_int_1, !(EFICACIA_INT_1 %in% c(99, 98)))
+
+df_percentage_3 <- desafeccio_int_1 %>%
+  group_by(ANY, EFICACIA_INT_1) %>%
+  summarise(count = n()) %>%
+  mutate('Eficacia interna 1' = count / sum(count) * 100) %>%  
+  filter(EFICACIA_INT_1 == 2)
+
+#EFICACIA INTERNA 2
+desafeccio_int_2 <- dta2 %>% select(EFICACIA_INT_2, ANY)
+desafeccio_int_2 <- desafeccio_int_2 %>%
+  filter(!is.na(EFICACIA_INT_2))
+desafeccio_int_2 <- subset(desafeccio_int_2, !(EFICACIA_INT_2 %in% c(99, 98)))
+
+df_percentage_4 <- desafeccio_int_2 %>%
+  group_by(ANY, EFICACIA_INT_2) %>%
+  summarise(count = n()) %>%
+  mutate('Eficacia interna 2' = count / sum(count) * 100) %>%  
+  filter(EFICACIA_INT_2 == 1)
+
+#GRÀFICS
+
+p1 <- ggplot(df_percentage_1, aes(x= ANY, y=`Eficacia externa 1`)) +
+  geom_line( color="red", size=1, alpha=0.9, linetype=1) +
+  ggtitle("Evolució de la desafecció, en sentit d'eficàcia externa")
+p1 <- p1 + labs(subtitle = "Desafecció mesurada amb l'afirmació: Crec que els polítics tenen en compte el que pensa la gent")
+p1
+
+p2 <- ggplot(df_percentage_2, aes(x= ANY, y=`Eficacia externa 2`)) +
+  geom_line( color="red", size=1, alpha=0.9, linetype=1) +
+  ggtitle("Evolució de la desafecció, en sentit d'eficàcia externa")
+p2 <- p2 + labs(subtitle = "Desafecció mesurada amb l'afirmació: Els polítics només busquen el benefici propi")
+p2
+
+p3 <- ggplot(df_percentage_3, aes(x= ANY, y=`Eficacia interna 1`)) +
+  geom_line( color="red", size=1, alpha=0.9, linetype=1) +
+  ggtitle("Evolució de la desafecció, en sentit d'eficàcia interna")
+p3 <- p3 + labs(subtitle = "Desafecció mesurada amb l'afirmació: La gent del carrer pot influir en el que fan els polítics")
+p3
+
+p4 <- ggplot(df_percentage_4, aes(x= ANY, y=`Eficacia interna 2`)) +
+  geom_line( color="red", size=1, alpha=0.9, linetype=1) +
+  ggtitle("Evolució de la desafecció, en sentit d'eficàcia interna")
+p4 <- p4 + labs(subtitle = "Desafecció mesurada amb l'afirmació: De vegades la política sembla tan complicada que se'm fa difícil entendre el que està passant")
+p4
